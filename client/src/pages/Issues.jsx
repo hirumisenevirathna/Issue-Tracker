@@ -5,6 +5,8 @@ import IssueSummary from "../components/IssueSummary";
 import IssueForm from "../components/IssueForm";
 import IssueList from "../components/IssueList";
 import { useNavigate } from "react-router-dom";
+import useDebounce from "../hooks/useDebounce";
+
 
 export default function Issues() {
   const { user, loading, logout } = useContext(AuthContext);
@@ -17,15 +19,18 @@ export default function Issues() {
   const [status, setStatus] = useState("");
   const [priority, setPriority] = useState("");
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
   const [page, setPage] = useState(1);
+  
 
   const params = useMemo(() => ({
-    page,
-    limit: meta.limit,
-    status: status || undefined,
-    priority: priority || undefined,
-    search: search || undefined,
-  }), [page, meta.limit, status, priority, search]);
+  page,
+  limit: meta.limit,
+  status: status || undefined,
+  priority: priority || undefined,
+  search: debouncedSearch || undefined,
+}), [page, meta.limit, status, priority, debouncedSearch]);
+
 
   const load = async () => {
     const res = await getIssues(params);
