@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 
 const authRoutes = require("./routes/auth.routes");
+
 const issueRoutes = require("./routes/issue.routes");
 
 const app = express();
