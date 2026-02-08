@@ -1,4 +1,51 @@
 const Issue = require("../models/Issue");
+const mongoose = require("mongoose");
+
+const getMyIssues = async (req, res) => {
+  try {
+    const { status, priority, search } = req.query;
+
+    // pagination defaults
+    const page = parseInt(req.query.page || "1", 10);
+    const limit = parseInt(req.query.limit || "10", 10);
+    const skip = (page - 1) * limit;
+
+    // base filter: only logged-in user's issues
+    const filter = { createdBy: req.user.userId };
+
+    // optional filters
+    if (status) filter.status = status;       // OPEN / IN_PROGRESS / DONE
+    if (priority) filter.priority = priority; // LOW / MEDIUM / HIGH
+
+    // optional search (title OR description)
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // total count (for pagination UI)
+    const total = await Issue.countDocuments(filter);
+
+    // paginated results
+    const issues = await Issue.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    return res.status(200).json({
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      issues,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
 
 // ✅ CREATE issue
 const createIssue = async (req, res) => {
@@ -25,18 +72,7 @@ const createIssue = async (req, res) => {
 };
 
 // ✅ GET all issues for logged-in user
-const getMyIssues = async (req, res) => {
-  try {
-    const issues = await Issue.find({ createdBy: req.user.userId }).sort({
-      createdAt: -1,
-    });
 
-    return res.status(200).json({ issues });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Server error" });
-  }
-};
 
 // ✅ GET single issue (only if owner)
 const getIssueById = async (req, res) => {
@@ -106,10 +142,40 @@ const deleteIssue = async (req, res) => {
   }
 };
 
+// ✅ GET issue status summary
+const getIssueSummary = async (req, res) => {
+  try {
+    const userObjectId = new mongoose.Types.ObjectId(req.user.userId);
+
+const summary = await Issue.aggregate([
+  { $match: { createdBy: userObjectId } },
+  { $group: { _id: "$status", count: { $sum: 1 } } },
+]);
+
+    // default counts
+    const result = {
+      OPEN: 0,
+      IN_PROGRESS: 0,
+      DONE: 0,
+    };
+
+    summary.forEach((item) => {
+      result[item._id] = item.count;
+    });
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+
 module.exports = {
   createIssue,
   getMyIssues,
   getIssueById,
   updateIssue,
   deleteIssue,
+  getIssueSummary,
 };

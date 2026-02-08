@@ -8,6 +8,7 @@ const {
   getIssueById,
   updateIssue,
   deleteIssue,
+  getIssueSummary,
 } = require("../controllers/issue.controller");
 
 // all routes protected
@@ -15,6 +16,7 @@ router.use(protect);
 
 router.post("/", createIssue);         // Create
 router.get("/", getMyIssues);          // Read all (my issues)
+router.get("/summary", getIssueSummary); // Read summary
 router.get("/:id", getIssueById);      // Read one
 router.put("/:id", updateIssue);       // Update
 router.delete("/:id", deleteIssue);    // Delete
