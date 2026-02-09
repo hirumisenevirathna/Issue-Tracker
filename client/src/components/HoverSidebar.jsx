@@ -10,7 +10,6 @@ const ICONS = {
 /* ---------- Tooltip ---------- */
 function Tooltip({ show, text }) {
   if (!show) return null;
-
   return (
     <div
       style={{
@@ -19,16 +18,16 @@ function Tooltip({ show, text }) {
         top: "50%",
         transform: "translateY(-50%)",
         padding: "8px 10px",
-        borderRadius: 10,
+        borderRadius: 12,
         fontSize: 12,
-        fontWeight: 800,
+        fontWeight: 900,
         color: "#e5e7eb",
-        background: "rgba(0,0,0,0.75)",
-        border: "1px solid rgba(255,255,255,0.12)",
-        boxShadow: "0 14px 40px rgba(0,0,0,0.35)",
+        background: "rgba(2,6,23,0.92)",
+        border: "1px solid rgba(148,163,184,0.18)",
+        boxShadow: "0 18px 60px rgba(0,0,0,0.55)",
         whiteSpace: "nowrap",
         pointerEvents: "none",
-        backdropFilter: "blur(10px)",
+        backdropFilter: "blur(12px)",
         animation: "tipIn 160ms ease-out",
       }}
     >
@@ -41,8 +40,9 @@ export default function HoverSidebar({ user, onLogout, open, setOpen }) {
   const nav = useNavigate();
   const [tip, setTip] = React.useState(null);
 
-  const collapsed = 76;
-  const expanded = 260;
+  // smaller + cleaner
+  const collapsed = 64;
+  const expanded = 230;
 
   const styles = {
     shell: {
@@ -52,125 +52,234 @@ export default function HoverSidebar({ user, onLogout, open, setOpen }) {
       height: "100vh",
       width: open ? expanded : collapsed,
       transition: "width 260ms cubic-bezier(.2,.8,.2,1)",
-      background: "rgba(15, 23, 42, 0.75)",
-      borderRight: "1px solid rgba(255,255,255,0.10)",
+      background:
+        "linear-gradient(180deg, rgba(15,23,42,0.85), rgba(2,6,23,0.75))",
+      borderRight: "1px solid rgba(148,163,184,0.14)",
       backdropFilter: "blur(14px)",
-      boxShadow: open
-        ? "0 24px 90px rgba(0,0,0,0.55)"
-        : "0 18px 60px rgba(0,0,0,0.35)",
-      overflow: "hidden",
+      boxShadow: "0 24px 90px rgba(0,0,0,0.45)",
       zIndex: 50,
     },
+
     inner: {
       height: "100%",
       display: "flex",
       flexDirection: "column",
       padding: 10,
-      gap: 10,
-      justifyContent: "space-between",
+      gap: 12,
     },
-    brandRow: {
+
+    // BRAND: simpler + friendly
+    brand: {
       display: "flex",
       alignItems: "center",
       gap: 10,
       padding: 10,
-      borderRadius: 14,
-      background: "rgba(0,0,0,0.25)",
-      border: "1px solid rgba(255,255,255,0.10)",
+      borderRadius: 18,
+      background: "rgba(255,255,255,0.04)",
+      border: "1px solid rgba(148,163,184,0.14)",
+      boxShadow: "0 12px 32px rgba(0,0,0,0.20)",
     },
     logo: {
-      width: 38,
-      height: 38,
-      borderRadius: 14,
+      width: 36,
+      height: 36,
+      borderRadius: 16,
       background:
         "linear-gradient(135deg, rgba(34,197,94,1), rgba(59,130,246,1))",
+      boxShadow: "0 12px 26px rgba(59,130,246,0.16)",
+      flex: "0 0 auto",
     },
-    fadeText: {
+    brandText: {
+      opacity: open ? 1 : 0,
+      transform: open ? "translateX(0)" : "translateX(-6px)",
+      transition: "opacity 220ms ease, transform 220ms ease",
+      fontWeight: 1000,
+      color: "#e5e7eb",
+      fontSize: 14,
       whiteSpace: "nowrap",
+      letterSpacing: 0.2,
+    },
+
+    // NAV RAIL (clean)
+    rail: {
+      display: "grid",
+      gap: 10,
+      padding: 10,
+      borderRadius: 22,
+      background: "rgba(255,255,255,0.03)",
+      border: "1px solid rgba(148,163,184,0.12)",
+    },
+
+    linkBase: {
+      position: "relative",
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+      borderRadius: 18,
+      textDecoration: "none",
+      padding: "10px 10px",
+      border: "1px solid transparent",
+      transition: "transform 160ms ease, filter 160ms ease, background 160ms ease",
+      outline: "none",
+    },
+
+    // icon tile: remove ugly circles → soft pill
+    iconTile: (active) => ({
+      width: 40,
+      height: 40,
+      borderRadius: 16,
+      display: "grid",
+      placeItems: "center",
+      background: active
+        ? "linear-gradient(135deg, rgba(59,130,246,0.22), rgba(34,197,94,0.12))"
+        : "rgba(2,6,23,0.45)",
+      border: active
+        ? "1px solid rgba(59,130,246,0.28)"
+        : "1px solid rgba(148,163,184,0.14)",
+      boxShadow: active
+        ? "0 14px 34px rgba(59,130,246,0.12)"
+        : "0 10px 26px rgba(0,0,0,0.16)",
+      flex: "0 0 auto",
+      marginLeft: -1, // slight left balance
+    }),
+
+    label: {
       opacity: open ? 1 : 0,
       transform: open ? "translateX(0)" : "translateX(-6px)",
       transition: "opacity 220ms ease, transform 220ms ease",
       fontWeight: 900,
+      fontSize: 13,
       color: "#e5e7eb",
+      whiteSpace: "nowrap",
     },
-    nav: { display: "grid", gap: 8 },
-    link: (active) => ({
+
+    // active background (friendly)
+    activeBg: {
+      position: "absolute",
+      inset: 0,
+      borderRadius: 18,
+      background:
+        "linear-gradient(135deg, rgba(59,130,246,0.14), rgba(34,197,94,0.08))",
+      border: "1px solid rgba(59,130,246,0.22)",
+      boxShadow: "0 16px 50px rgba(0,0,0,0.22)",
+      pointerEvents: "none",
+    },
+
+    iconWrap: { position: "relative", zIndex: 1 },
+
+    spacer: { flex: 1 },
+
+    // USER AREA: clean capsule
+    userCard: {
+      padding: 10,
+      borderRadius: 22,
+      background: "rgba(255,255,255,0.04)",
+      border: "1px solid rgba(148,163,184,0.12)",
+      boxShadow: "0 18px 60px rgba(0,0,0,0.32)",
+      display: "grid",
+      gap: 10,
+    },
+    userRow: {
       display: "flex",
       alignItems: "center",
       gap: 10,
-      padding: 12,
-      borderRadius: 14,
-      textDecoration: "none",
-      background: active ? "rgba(59,130,246,0.16)" : "rgba(0,0,0,0.25)",
-      border: "1px solid rgba(255,255,255,0.10)",
-      color: "#e5e7eb",
-    }),
-    iconWrap: { position: "relative" },
-    icon: {
-      width: 36,
-      height: 36,
-      borderRadius: 14,
+      minHeight: 46,
+    },
+    avatar: {
+      width: 38,
+      height: 38,
+      borderRadius: 999,
+      background:
+        "linear-gradient(135deg, rgba(59,130,246,0.95), rgba(34,197,94,0.95))",
       display: "grid",
       placeItems: "center",
-      background: "rgba(255,255,255,0.06)",
-      border: "1px solid rgba(255,255,255,0.10)",
+      fontWeight: 1000,
+      color: "#0b1220",
+      boxShadow: "0 12px 26px rgba(59,130,246,0.16)",
+      flex: "0 0 auto",
     },
-    label: {
-      whiteSpace: "nowrap",
+    userText: {
       opacity: open ? 1 : 0,
       transform: open ? "translateX(0)" : "translateX(-6px)",
       transition: "opacity 220ms ease, transform 220ms ease",
-      fontWeight: 800,
-      fontSize: 13,
+      minWidth: 0,
     },
-    spacer: { flex: 1 },
-    userCard: {
-  padding: 14,
-  borderRadius: 20,
-  background: "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.28))",
-  border: "1px solid rgba(255,255,255,0.12)",
-  display: "grid",
-  gap: 10,
-  boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
-},
-
-
-    avatar: {
-  width: 42,
-  height: 42,
-  borderRadius: "50%", // 🔥 friendly circle
-  background:
-    "linear-gradient(135deg, rgba(59,130,246,0.9), rgba(34,197,94,0.9))",
-  display: "grid",
-  placeItems: "center",
-  fontWeight: 900,
-  color: "#0b1220",
-  boxShadow: "0 6px 18px rgba(59,130,246,0.35)",
-},
-
+    userTitle: {
+      fontSize: 12,
+      fontWeight: 1000,
+      color: "#e5e7eb",
+      marginBottom: 2,
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+    },
     email: {
       fontSize: 12,
-      color: "#cbd5e1",
-      opacity: open ? 1 : 0,
-      transform: open ? "translateX(0)" : "translateX(-6px)",
-      transition: "opacity 220ms ease, transform 220ms ease",
+      color: "#94a3b8",
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
     },
-    logout: {
-  marginTop: 6,
-  padding: "12px",
-  borderRadius: 16,
-  background:
-    "linear-gradient(135deg, rgba(239,68,68,0.25), rgba(239,68,68,0.12))",
-  border: "1px solid rgba(239,68,68,0.35)",
-  color: "#fee2e2",
-  fontWeight: 800,
-  cursor: "pointer",
-  transition: "transform 160ms ease, filter 160ms ease",
-},
 
+    // LOGOUT: no outline touch; icon-only when collapsed
+    logout: {
+      height: 42,
+      border: "1px solid rgba(239,68,68,0.28)",
+      background:
+        "linear-gradient(135deg, rgba(239,68,68,0.18), rgba(239,68,68,0.08))",
+      color: "#fee2e2",
+      borderRadius: open ? 16 : 999,
+      width: open ? "100%" : 42,
+      padding: open ? "0 12px" : 0,
+      fontWeight: 1000,
+      cursor: "pointer",
+      boxShadow: "0 14px 36px rgba(0,0,0,0.26)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: open ? "center" : "flex-start",
+      gap: 8,
+      paddingLeft: open ? 12 : 12, // slightly left
+      outline: "none",
+      transition: "transform 160ms ease, filter 160ms ease, border-color 160ms ease",
+    },
   };
 
   const initials = user?.email?.[0]?.toUpperCase() || "U";
+
+  const linkHoverOn = (e) => {
+    e.currentTarget.style.transform = "translateY(-1px)";
+    e.currentTarget.style.filter = "brightness(1.08)";
+    e.currentTarget.style.border = "1px solid rgba(59,130,246,0.22)";
+    e.currentTarget.style.background = "rgba(255,255,255,0.05)";
+  };
+  const linkHoverOff = (e) => {
+    e.currentTarget.style.transform = "translateY(0)";
+    e.currentTarget.style.filter = "brightness(1)";
+    e.currentTarget.style.border = "1px solid transparent";
+    e.currentTarget.style.background = "transparent";
+  };
+
+  const Item = ({ to, label, icon, exact }) => (
+    <NavLink to={to} end={exact} style={styles.linkBase}
+      onMouseEnter={linkHoverOn} onMouseLeave={linkHoverOff}
+    >
+      {({ isActive }) => (
+        <>
+          {isActive && <div style={styles.activeBg} />}
+          <div
+            style={{ ...styles.iconWrap, position: "relative" }}
+            onMouseEnter={() => !open && setTip(label)}
+            onMouseLeave={() => setTip(null)}
+          >
+            <div style={styles.iconTile(isActive)}>{icon}</div>
+            <Tooltip show={!open && tip === label} text={label} />
+          </div>
+          <div style={{ ...styles.label, position: "relative", zIndex: 1 }}>
+            {label}
+          </div>
+        </>
+      )}
+    </NavLink>
+  );
 
   return (
     <div
@@ -180,96 +289,62 @@ export default function HoverSidebar({ user, onLogout, open, setOpen }) {
     >
       <div style={styles.inner}>
         {/* Brand */}
-        <div style={styles.brandRow}>
+        <div style={styles.brand}>
           <div style={styles.logo} />
-          <div style={styles.fadeText}>Issue Tracker</div>
+          <div style={styles.brandText}>Issue Tracker</div>
         </div>
 
-        {/* Nav */}
-        <div style={styles.nav}>
-          {/* Dashboard */}
-          <NavLink to="/dashboard" style={({ isActive }) => styles.link(isActive)}>
-            <div
-              style={styles.iconWrap}
-              onMouseEnter={() => !open && setTip("Dashboard")}
-              onMouseLeave={() => setTip(null)}
-            >
-              <div style={styles.icon}>{ICONS.dashboard}</div>
-              <Tooltip show={!open && tip === "Dashboard"} text="Dashboard" />
-            </div>
-            <div style={styles.label}>Dashboard</div>
-          </NavLink>
-
-          {/* Create */}
-          <NavLink
-            to="/issues/new"
-            style={({ isActive }) => styles.link(isActive)}
-          >
-            <div
-              style={styles.iconWrap}
-              onMouseEnter={() => !open && setTip("Create Issue")}
-              onMouseLeave={() => setTip(null)}
-            >
-              <div style={styles.icon}>{ICONS.create}</div>
-              <Tooltip show={!open && tip === "Create Issue"} text="Create Issue" />
-            </div>
-            <div style={styles.label}>Create Issue</div>
-          </NavLink>
-
-          {/* Issues (exact match) */}
-          <NavLink
-            to="/issues"
-            end
-            style={({ isActive }) => styles.link(isActive)}
-          >
-            <div
-              style={styles.iconWrap}
-              onMouseEnter={() => !open && setTip("Issues")}
-              onMouseLeave={() => setTip(null)}
-            >
-              <div style={styles.icon}>{ICONS.issues}</div>
-              <Tooltip show={!open && tip === "Issues"} text="Issues" />
-            </div>
-            <div style={styles.label}>Issues</div>
-          </NavLink>
+        {/* Nav Rail */}
+        <div style={styles.rail}>
+          <Item to="/dashboard" label="Dashboard" icon={ICONS.dashboard} />
+          <Item to="/issues/new" label="Create Issue" icon={ICONS.create} />
+          <Item to="/issues" label="Issues" icon={ICONS.issues} exact />
         </div>
 
-        
+        <div style={styles.spacer} />
 
         {/* User */}
-        <div
-  style={{
-    ...styles.userCard,
-    marginTop: 0,
-    marginBottom: 6, // ✅ keeps gap from bottom edge
-  }}
->
-  <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-    <div style={styles.avatar}>{initials}</div>
+        <div style={styles.userCard}>
+          <div style={styles.userRow}>
+            <div style={styles.avatar}>{initials}</div>
+            <div style={styles.userText}>
+              <div style={styles.userTitle}>Signed in</div>
+              <div style={styles.email}>{user?.email}</div>
+            </div>
+          </div>
 
-    {/* show email only when expanded */}
-    {open && <div style={styles.email}>{user?.email}</div>}
-  </div>
+          <button
+            style={styles.logout}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-1px)";
+              e.currentTarget.style.filter = "brightness(1.08)";
+              e.currentTarget.style.borderColor = "rgba(239,68,68,0.50)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.filter = "brightness(1)";
+              e.currentTarget.style.borderColor = "rgba(239,68,68,0.28)";
+            }}
+            onClick={() => {
+              onLogout();
+              nav("/login");
+            }}
+            title={!open ? "Logout" : undefined}
+          >
+            <span style={{ fontSize: 18, lineHeight: 1 }}>🚪</span>
+            {open && <span>Logout</span>}
+          </button>
+        </div>
 
-<button
-  style={{
-    ...styles.logout,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center", // ✅ center horizontally
-    width: "100%",
-    padding: open ? "12px" : "12px 0", // ✅ remove side padding when collapsed
-  }}
-  onClick={() => {
-    onLogout();
-    nav("/login");
-  }}
->
-  🚪 {open && "Logout"}
-</button>
-
-</div>
-
+        {/* Animations + focus fix */}
+        <style>{`
+          @keyframes tipIn {
+            from { opacity: 0; transform: translateY(-50%) translateX(-6px); }
+            to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+          }
+          button:focus { outline: none; }
+          button:focus-visible { outline: 2px solid rgba(59,130,246,0.35); outline-offset: 2px; }
+        `}</style>
       </div>
     </div>
   );
