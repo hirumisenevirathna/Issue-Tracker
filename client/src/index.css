@@ -1,11 +1,38 @@
+/* =========================
+   GLOBAL RESET
+   ========================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* =========================
+   ROOT / VIEWPORT
+   ========================= */
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: #0b1220; /* 🔥 full dark background */
+}
+
+/* =========================
+   ROOT VARIABLES
+   ========================= */
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
+  color-scheme: dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -13,27 +40,33 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* =========================
+   LINKS
+   ========================= */
+
 a {
   font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+  color: #93c5fd;
+  text-decoration: none;
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+a:hover {
+  color: #bfdbfe;
 }
+
+/* =========================
+   HEADINGS
+   ========================= */
 
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
+  margin: 0;
 }
+
+/* =========================
+   BUTTONS (BASE)
+   ========================= */
 
 button {
   border-radius: 8px;
@@ -42,27 +75,65 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
+
   background-color: #1a1a1a;
+  color: rgba(255, 255, 255, 0.87);
+
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: border-color 0.25s, background-color 0.25s;
 }
+
 button:hover {
-  border-color: #646cff;
+  border-color: #60a5fa;
 }
+
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
 }
+
+/* =========================
+   REMOVE VITE DEMO STYLES
+   ========================= */
+
+#root {
+  max-width: none;
+  padding: 0;
+  text-align: left;
+}
+
+.logo,
+.card,
+.read-the-docs {
+  display: none;
+}
+
+/* =========================
+   FORCE DARK EVEN ON LIGHT MODE
+   ========================= */
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    background-color: #0b1220;
+    color: rgba(255, 255, 255, 0.87);
   }
-  a:hover {
-    color: #747bff;
-  }
+
   button {
-    background-color: #f9f9f9;
+    background-color: #1a1a1a;
+    color: rgba(255, 255, 255, 0.87);
+  }
+}
+
+body { overflow-x: hidden; }
+
+@keyframes tipIn {
+  from {
+    opacity: 0;
+    transform: translate(6px, -50%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0px, -50%);
   }
 }

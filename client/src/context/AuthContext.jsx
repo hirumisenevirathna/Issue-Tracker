@@ -13,10 +13,21 @@ export default function AuthProvider({ children }) {
   };
 
   const refreshUser = async () => {
+    const token = localStorage.getItem("token");
+
+    // ✅ token නැත්තං: immediately stop loading + user null
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await me();
+      const res = await me(); // must send token in Authorization header
       setUser(res.data.user);
-    } catch {
+    } catch (err) {
+      // ✅ token invalid/expired => remove it
+      localStorage.removeItem("token");
       setUser(null);
     } finally {
       setLoading(false);
