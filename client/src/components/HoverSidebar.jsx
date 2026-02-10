@@ -2,19 +2,18 @@ import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 
 const ICONS = {
-  dashboard: "🏠",
-  create: "➕",
-  issues: "📋",
+  dashboard: "/home.png",
+  create: "/create.png",
+  issues: "/list.png",
 };
 
-/* ---------- Tooltip ---------- */
 function Tooltip({ show, text }) {
   if (!show) return null;
   return (
     <div
       style={{
         position: "absolute",
-        left: 64,
+        left: 70,
         top: "50%",
         transform: "translateY(-50%)",
         padding: "8px 10px",
@@ -29,6 +28,7 @@ function Tooltip({ show, text }) {
         pointerEvents: "none",
         backdropFilter: "blur(12px)",
         animation: "tipIn 160ms ease-out",
+        zIndex: 999,
       }}
     >
       {text}
@@ -39,10 +39,26 @@ function Tooltip({ show, text }) {
 export default function HoverSidebar({ user, onLogout, open, setOpen }) {
   const nav = useNavigate();
   const [tip, setTip] = React.useState(null);
+  const [menuOpen, setMenuOpen] = React.useState(false);
 
-  // smaller + cleaner
-  const collapsed = 64;
+  const collapsed = 90;
   const expanded = 230;
+
+  // ✅ close dropdown when clicking outside
+  const menuRef = React.useRef(null);
+  React.useEffect(() => {
+    const onDown = (e) => {
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, []);
+
+  // ✅ close dropdown when sidebar collapses
+  React.useEffect(() => {
+    if (!open) setMenuOpen(false);
+  }, [open]);
 
   const styles = {
     shell: {
@@ -51,47 +67,41 @@ export default function HoverSidebar({ user, onLogout, open, setOpen }) {
       left: 0,
       height: "100vh",
       width: open ? expanded : collapsed,
-      transition: "width 260ms cubic-bezier(.2,.8,.2,1)",
-      background:
-        "linear-gradient(180deg, rgba(15,23,42,0.85), rgba(2,6,23,0.75))",
-      borderRight: "1px solid rgba(148,163,184,0.14)",
-      backdropFilter: "blur(14px)",
+      transition: "width 240ms cubic-bezier(.2,.8,.2,1)",
+      background: "rgba(10,16,30,0.78)",
+      borderRight: "1px solid rgba(148,163,184,0.12)",
+      backdropFilter: "blur(16px)",
       boxShadow: "0 24px 90px rgba(0,0,0,0.45)",
-      zIndex: 50,
-    },
-
-    inner: {
-      height: "100%",
+      zIndex: 100,
+      padding: 12,
+      boxSizing: "border-box",
       display: "flex",
       flexDirection: "column",
-      padding: 10,
-      gap: 12,
     },
 
-    // BRAND: simpler + friendly
     brand: {
       display: "flex",
       alignItems: "center",
       gap: 10,
       padding: 10,
       borderRadius: 18,
-      background: "rgba(255,255,255,0.04)",
-      border: "1px solid rgba(148,163,184,0.14)",
-      boxShadow: "0 12px 32px rgba(0,0,0,0.20)",
+      background: open ? "rgba(255,255,255,0.04)" : "transparent",
+      border: open ? "1px solid rgba(148,163,184,0.12)" : "1px solid transparent",
+      marginBottom: 12,
+      transition: "background 200ms ease, border 200ms ease",
     },
     logo: {
-      width: 36,
-      height: 36,
+      width: 40,
+      height: 40,
       borderRadius: 16,
-      background:
-        "linear-gradient(135deg, rgba(34,197,94,1), rgba(59,130,246,1))",
-      boxShadow: "0 12px 26px rgba(59,130,246,0.16)",
+      background: "linear-gradient(135deg, rgba(34,197,94,1), rgba(59,130,246,1))",
+      boxShadow: "0 12px 26px rgba(59,130,246,0.18)",
       flex: "0 0 auto",
     },
     brandText: {
       opacity: open ? 1 : 0,
       transform: open ? "translateX(0)" : "translateX(-6px)",
-      transition: "opacity 220ms ease, transform 220ms ease",
+      transition: "opacity 200ms ease, transform 200ms ease",
       fontWeight: 1000,
       color: "#e5e7eb",
       fontSize: 14,
@@ -99,14 +109,10 @@ export default function HoverSidebar({ user, onLogout, open, setOpen }) {
       letterSpacing: 0.2,
     },
 
-    // NAV RAIL (clean)
-    rail: {
+    nav: {
       display: "grid",
-      gap: 10,
-      padding: 10,
-      borderRadius: 22,
-      background: "rgba(255,255,255,0.03)",
-      border: "1px solid rgba(148,163,184,0.12)",
+      gap: 12,
+      marginTop: 8,
     },
 
     linkBase: {
@@ -114,93 +120,98 @@ export default function HoverSidebar({ user, onLogout, open, setOpen }) {
       display: "flex",
       alignItems: "center",
       gap: 12,
-      borderRadius: 18,
       textDecoration: "none",
       padding: "10px 10px",
+      borderRadius: 18,
       border: "1px solid transparent",
-      transition: "transform 160ms ease, filter 160ms ease, background 160ms ease",
+      transition: "background 160ms ease, transform 160ms ease, border 160ms ease",
       outline: "none",
     },
 
-    // icon tile: remove ugly circles → soft pill
-    iconTile: (active) => ({
-      width: 40,
-      height: 40,
+    activeBg: (openNow) => ({
+      position: "absolute",
+      inset: 0,
+      borderRadius: 18,
+      background: "rgba(59,130,246,0.08)",
+      border: "1px solid rgba(59,130,246,0.16)",
+      pointerEvents: "none",
+      opacity: openNow ? 1 : 0,
+      transition: "opacity 160ms ease",
+    }),
+
+    icon: (active) => ({
+      width: 44,
+      height: 44,
       borderRadius: 16,
       display: "grid",
       placeItems: "center",
-      background: active
-        ? "linear-gradient(135deg, rgba(59,130,246,0.22), rgba(34,197,94,0.12))"
-        : "rgba(2,6,23,0.45)",
-      border: active
-        ? "1px solid rgba(59,130,246,0.28)"
-        : "1px solid rgba(148,163,184,0.14)",
-      boxShadow: active
-        ? "0 14px 34px rgba(59,130,246,0.12)"
-        : "0 10px 26px rgba(0,0,0,0.16)",
+      background: active ? "rgba(59,130,246,0.10)" : "transparent",
+      border: active ? "1px solid rgba(59,130,246,0.18)" : "1px solid transparent",
+      transition: "background 160ms ease, border 160ms ease, transform 160ms ease",
       flex: "0 0 auto",
-      marginLeft: -1, // slight left balance
+    }),
+
+    iconImg: (isActive) => ({
+      width: 22,
+      height: 22,
+      objectFit: "contain",
+      filter: isActive ? "brightness(1.15)" : "brightness(1)",
     }),
 
     label: {
       opacity: open ? 1 : 0,
       transform: open ? "translateX(0)" : "translateX(-6px)",
-      transition: "opacity 220ms ease, transform 220ms ease",
+      transition: "opacity 200ms ease, transform 200ms ease",
       fontWeight: 900,
       fontSize: 13,
       color: "#e5e7eb",
       whiteSpace: "nowrap",
     },
 
-    // active background (friendly)
-    activeBg: {
-      position: "absolute",
-      inset: 0,
-      borderRadius: 18,
-      background:
-        "linear-gradient(135deg, rgba(59,130,246,0.14), rgba(34,197,94,0.08))",
-      border: "1px solid rgba(59,130,246,0.22)",
-      boxShadow: "0 16px 50px rgba(0,0,0,0.22)",
-      pointerEvents: "none",
-    },
-
-    iconWrap: { position: "relative", zIndex: 1 },
-
     spacer: { flex: 1 },
 
-    // USER AREA: clean capsule
     userCard: {
+      position: "relative",
       padding: 10,
-      borderRadius: 22,
-      background: "rgba(255,255,255,0.04)",
-      border: "1px solid rgba(148,163,184,0.12)",
-      boxShadow: "0 18px 60px rgba(0,0,0,0.32)",
+      borderRadius: 20,
+      background: open ? "rgba(255,255,255,0.04)" : "transparent",
+      border: open ? "1px solid rgba(148,163,184,0.10)" : "1px solid transparent",
+      transition: "background 200ms ease, border 200ms ease",
       display: "grid",
       gap: 10,
     },
-    userRow: {
+
+    userRowBtn: {
       display: "flex",
       alignItems: "center",
       gap: 10,
       minHeight: 46,
+      cursor: open ? "pointer" : "default",
+      borderRadius: 16,
+      padding: "8px 8px",
+      border: "1px solid transparent",
+      background: "transparent",
+      color: "inherit",
+      textAlign: "left",
     },
+
     avatar: {
-      width: 38,
-      height: 38,
+      width: 42,
+      height: 42,
       borderRadius: 999,
-      background:
-        "linear-gradient(135deg, rgba(59,130,246,0.95), rgba(34,197,94,0.95))",
+      background: "linear-gradient(135deg, rgba(59,130,246,0.95), rgba(34,197,94,0.95))",
       display: "grid",
       placeItems: "center",
       fontWeight: 1000,
       color: "#0b1220",
-      boxShadow: "0 12px 26px rgba(59,130,246,0.16)",
       flex: "0 0 auto",
+      userSelect: "none",
     },
+
     userText: {
       opacity: open ? 1 : 0,
       transform: open ? "translateX(0)" : "translateX(-6px)",
-      transition: "opacity 220ms ease, transform 220ms ease",
+      transition: "opacity 200ms ease, transform 200ms ease",
       minWidth: 0,
     },
     userTitle: {
@@ -220,132 +231,178 @@ export default function HoverSidebar({ user, onLogout, open, setOpen }) {
       textOverflow: "ellipsis",
     },
 
-    // LOGOUT: no outline touch; icon-only when collapsed
-    logout: {
-      height: 42,
-      border: "1px solid rgba(239,68,68,0.28)",
-      background:
-        "linear-gradient(135deg, rgba(239,68,68,0.18), rgba(239,68,68,0.08))",
-      color: "#fee2e2",
-      borderRadius: open ? 16 : 999,
-      width: open ? "100%" : 42,
-      padding: open ? "0 12px" : 0,
-      fontWeight: 1000,
-      cursor: "pointer",
-      boxShadow: "0 14px 36px rgba(0,0,0,0.26)",
+    menu: {
+      position: "absolute",
+      right: 10,
+      bottom: 64,
+      width: 190,
+      borderRadius: 16,
+      background: "rgba(2,6,23,0.88)",
+      border: "1px solid rgba(148,163,184,0.18)",
+      boxShadow: "0 22px 90px rgba(0,0,0,0.55)",
+      backdropFilter: "blur(14px)",
+      overflow: "hidden",
+      transform: menuOpen ? "translateY(0) scale(1)" : "translateY(8px) scale(0.98)",
+      opacity: menuOpen ? 1 : 0,
+      pointerEvents: menuOpen ? "auto" : "none",
+      transition: "all 160ms ease",
+      zIndex: 500,
+    },
+
+    menuItem: {
+      width: "100%",
       display: "flex",
       alignItems: "center",
-      justifyContent: open ? "center" : "flex-start",
-      gap: 8,
-      paddingLeft: open ? 12 : 12, // slightly left
-      outline: "none",
-      transition: "transform 160ms ease, filter 160ms ease, border-color 160ms ease",
+      gap: 10,
+      padding: "12px 12px",
+      cursor: "pointer",
+      background: "transparent",
+      border: "none",
+      color: "#e5e7eb",
+      fontWeight: 900,
+      fontSize: 13,
+      textAlign: "left",
+    },
+
+    menuItemHover: {
+      background: "rgba(255,255,255,0.06)",
+    },
+
+    menuIcon: {
+      width: 18,
+      height: 18,
+      objectFit: "contain",
+      filter: "brightness(1.15)",
+      flex: "0 0 auto",
     },
   };
 
   const initials = user?.email?.[0]?.toUpperCase() || "U";
 
-  const linkHoverOn = (e) => {
-    e.currentTarget.style.transform = "translateY(-1px)";
-    e.currentTarget.style.filter = "brightness(1.08)";
-    e.currentTarget.style.border = "1px solid rgba(59,130,246,0.22)";
-    e.currentTarget.style.background = "rgba(255,255,255,0.05)";
-  };
-  const linkHoverOff = (e) => {
-    e.currentTarget.style.transform = "translateY(0)";
-    e.currentTarget.style.filter = "brightness(1)";
-    e.currentTarget.style.border = "1px solid transparent";
-    e.currentTarget.style.background = "transparent";
-  };
-
   const Item = ({ to, label, icon, exact }) => (
-    <NavLink to={to} end={exact} style={styles.linkBase}
-      onMouseEnter={linkHoverOn} onMouseLeave={linkHoverOff}
+    <NavLink
+      to={to}
+      end={exact}
+      style={styles.linkBase}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = "rgba(255,255,255,0.05)";
+        e.currentTarget.style.transform = "translateY(-1px)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = "transparent";
+        e.currentTarget.style.transform = "translateY(0)";
+      }}
     >
       {({ isActive }) => (
         <>
-          {isActive && <div style={styles.activeBg} />}
+          {isActive && <div style={styles.activeBg(open)} />}
+
           <div
-            style={{ ...styles.iconWrap, position: "relative" }}
+            style={{ position: "relative", zIndex: 1 }}
             onMouseEnter={() => !open && setTip(label)}
             onMouseLeave={() => setTip(null)}
           >
-            <div style={styles.iconTile(isActive)}>{icon}</div>
+            <div style={styles.icon(isActive)}>
+              <img src={icon} alt="" style={styles.iconImg(isActive)} draggable={false} />
+            </div>
             <Tooltip show={!open && tip === label} text={label} />
           </div>
-          <div style={{ ...styles.label, position: "relative", zIndex: 1 }}>
-            {label}
-          </div>
+
+          <div style={{ ...styles.label, position: "relative", zIndex: 1 }}>{label}</div>
         </>
       )}
     </NavLink>
   );
 
   return (
-    <div
+    <aside
       style={styles.shell}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
-      <div style={styles.inner}>
-        {/* Brand */}
-        <div style={styles.brand}>
-          <div style={styles.logo} />
-          <div style={styles.brandText}>Issue Tracker</div>
-        </div>
+      <div style={styles.brand}>
+        <div style={styles.logo} />
+        <div style={styles.brandText}>Issue Tracker</div>
+      </div>
 
-        {/* Nav Rail */}
-        <div style={styles.rail}>
-          <Item to="/dashboard" label="Dashboard" icon={ICONS.dashboard} />
-          <Item to="/issues/new" label="Create Issue" icon={ICONS.create} />
-          <Item to="/issues" label="Issues" icon={ICONS.issues} exact />
-        </div>
+      <div style={styles.nav}>
+        <Item to="/dashboard" label="Dashboard" icon={ICONS.dashboard} />
+        <Item to="/issues/new" label="Create Issue" icon={ICONS.create} />
+        <Item to="/issues" label="Issues" icon={ICONS.issues} exact />
+      </div>
 
-        <div style={styles.spacer} />
+      <div style={styles.spacer} />
 
-        {/* User */}
-        <div style={styles.userCard}>
-          <div style={styles.userRow}>
-            <div style={styles.avatar}>{initials}</div>
-            <div style={styles.userText}>
-              <div style={styles.userTitle}>Signed in</div>
-              <div style={styles.email}>{user?.email}</div>
-            </div>
+      {/* ✅ User Card + Dropdown */}
+      <div style={styles.userCard} ref={menuRef}>
+        <button
+          type="button"
+          style={styles.userRowBtn}
+          onClick={() => open && setMenuOpen((v) => !v)}
+          onMouseEnter={(e) => {
+            if (!open) return;
+            e.currentTarget.style.background = "rgba(255,255,255,0.05)";
+            e.currentTarget.style.border = "1px solid rgba(148,163,184,0.14)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.border = "1px solid transparent";
+          }}
+          title={!open ? "Signed in" : undefined}
+        >
+          <div style={styles.avatar}>{initials}</div>
+          <div style={styles.userText}>
+            <div style={styles.userTitle}>Signed in</div>
+            <div style={styles.email}>{user?.email}</div>
           </div>
 
-          <button
-            style={styles.logout}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-1px)";
-              e.currentTarget.style.filter = "brightness(1.08)";
-              e.currentTarget.style.borderColor = "rgba(239,68,68,0.50)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.filter = "brightness(1)";
-              e.currentTarget.style.borderColor = "rgba(239,68,68,0.28)";
-            }}
-            onClick={() => {
-              onLogout();
-              nav("/login");
-            }}
-            title={!open ? "Logout" : undefined}
-          >
-            <span style={{ fontSize: 18, lineHeight: 1 }}>🚪</span>
-            {open && <span>Logout</span>}
-          </button>
-        </div>
+          {/* caret only when open */}
+          {open && (
+            <div style={{ marginLeft: "auto", color: "rgba(226,232,240,0.7)", fontWeight: 900 }}>
+              ▾
+            </div>
+          )}
+        </button>
 
-        {/* Animations + focus fix */}
-        <style>{`
-          @keyframes tipIn {
-            from { opacity: 0; transform: translateY(-50%) translateX(-6px); }
-            to   { opacity: 1; transform: translateY(-50%) translateX(0); }
-          }
-          button:focus { outline: none; }
-          button:focus-visible { outline: 2px solid rgba(59,130,246,0.35); outline-offset: 2px; }
-        `}</style>
+        <div style={styles.menu}>
+          <MenuButton
+            label="Logout"
+            icon="/logout.png"
+            styles={styles}
+            onClick={async () => {
+              setMenuOpen(false);
+              await onLogout?.();
+              nav("/", { replace: true });
+            }}
+          />
+        </div>
       </div>
-    </div>
+
+      <style>{`
+        @keyframes tipIn {
+          from { opacity: 0; transform: translateY(-50%) translateX(-6px); }
+          to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+        }
+        button:focus { outline: none; }
+        button:focus-visible { outline: 2px solid rgba(59,130,246,0.35); outline-offset: 2px; }
+      `}</style>
+    </aside>
+  );
+}
+
+function MenuButton({ label, icon, onClick, styles }) {
+  const [hover, setHover] = React.useState(false);
+
+  return (
+    <button
+      type="button"
+      style={{ ...styles.menuItem, ...(hover ? styles.menuItemHover : {}) }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onClick={onClick}
+    >
+      <img src={icon} alt="" style={styles.menuIcon} draggable={false} />
+      <span>{label}</span>
+    </button>
   );
 }

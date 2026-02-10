@@ -59,15 +59,17 @@ export default function Login() {
 
   const styles = {
     page: {
-      minHeight: "100vh",
-      display: "grid",
-      placeItems: "center",
-      padding: 16,
-      background:
-        "radial-gradient(1200px 500px at 10% 10%, rgba(34,197,94,0.18), transparent 60%), radial-gradient(1200px 500px at 90% 20%, rgba(59,130,246,0.18), transparent 60%), #0b1220",
-      color: "#e5e7eb",
-      animation: "pageIn 420ms ease-out",
-    },
+  position: "fixed",
+  inset: 0,              // 🔥 full viewport
+  overflow: "hidden",
+  display: "grid",
+  placeItems: "center",
+  padding: 0,            // ❌ remove padding (white edge cause)
+  color: "#e5e7eb",
+  background: "#0b1220",
+  animation: "pageIn 420ms ease-out",
+}
+,
     card: {
       width: "100%",
       maxWidth: 420,
@@ -76,8 +78,11 @@ export default function Login() {
       borderRadius: 18,
       padding: 24,
       boxShadow: "0 22px 80px rgba(0,0,0,0.45)",
-      backdropFilter: "blur(14px)",
+      backdropFilter: "blur(10px)",
       animation: "cardIn 520ms cubic-bezier(.2,.8,.2,1)",
+      zIndex: 2,
+position: "relative",
+
     },
     brand: {
       display: "flex",
@@ -135,6 +140,23 @@ export default function Login() {
     btnDisabled: { opacity: 0.7, cursor: "not-allowed" },
     footer: { marginTop: 14, fontSize: 13, color: "#cbd5e1" },
     link: { color: "#93c5fd", textDecoration: "none", fontWeight: 700 },
+
+    video: {
+  position: "absolute",
+  inset: 0,
+  width: "100%",
+  height: "100%",
+  objectFit: "cover",
+  zIndex: 0,
+},
+overlay: {
+  position: "absolute",
+  inset: 0,
+  background:
+    "radial-gradient(1200px 500px at 10% 10%, rgba(34,197,94,0.18), transparent 60%), radial-gradient(1200px 500px at 90% 20%, rgba(59,130,246,0.18), transparent 60%), linear-gradient(180deg, rgba(2,6,23,0.55), rgba(2,6,23,0.75))",
+  zIndex: 1,
+},
+
   };
 
   const focusIn = (e) => {
@@ -149,6 +171,19 @@ export default function Login() {
 
   return (
     <div style={styles.page}>
+        <video
+  autoPlay
+  muted
+  loop
+  playsInline
+  disablePictureInPicture
+  controls={false}
+  controlsList="nodownload noplaybackrate noremoteplayback"
+  style={styles.video}
+>
+  <source src="/bg.mp4" type="video/mp4" />
+</video>
+
       <div style={styles.card}>
         <div style={styles.brand}>
           <div style={styles.logo} />

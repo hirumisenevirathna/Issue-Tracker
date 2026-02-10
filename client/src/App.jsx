@@ -5,12 +5,13 @@ import Dashboard from "./pages/Dashboard";
 import ProtectedLayout from "./components/ProtectedLayout";
 import IssueListPage from "./pages/IssueListPage";
 import IssueCreatePage from "./pages/IssueCreatePage";
+import LandingPage from "./pages/LandingPage";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" />} />
+        <Route path="/" element={<LandingPage />} />
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

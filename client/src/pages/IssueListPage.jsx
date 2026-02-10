@@ -1,6 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { createIssue, deleteIssue, getIssues, updateIssue } from "../api/issues.api";
+import { deleteIssue, getIssues, updateIssue } from "../api/issues.api";
 import IssueSummary from "../components/IssueSummary";
 import IssueList from "../components/IssueList";
 import { useNavigate } from "react-router-dom";
@@ -51,11 +51,6 @@ export default function IssueListPage() {
     // eslint-disable-next-line
   }, [user, params, refreshKey]);
 
-  const onCreate = async (data) => {
-    await createIssue(data);
-    setRefreshKey((k) => k + 1);
-  };
-
   const onStatus = async (id, newStatus) => {
     await updateIssue(id, { status: newStatus });
     setRefreshKey((k) => k + 1);
@@ -70,25 +65,18 @@ export default function IssueListPage() {
 
   const animations = `
     @keyframes pageIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes cardIn {
-      from {
-        opacity: 0;
-        transform: translateY(12px) scale(0.98);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
+      from { opacity: 0; transform: translateY(12px) scale(0.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    @keyframes pulseSoft {
-      0% { opacity: 0.75; }
-      50% { opacity: 1; }
-      100% { opacity: 0.75; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
     }
   `;
 
@@ -102,54 +90,101 @@ export default function IssueListPage() {
   };
 
   const styles = {
+    // ✅ DO NOT put background here (ProtectedLayout handles full-page fixed bg)
     page: {
       minHeight: "100vh",
-      padding: 16,
-      background:
-        "radial-gradient(1200px 600px at 10% 10%, rgba(34,197,94,0.16), transparent 60%), radial-gradient(1200px 600px at 90% 20%, rgba(59,130,246,0.16), transparent 60%), #0b1220",
+      width: "100%",
+      padding: 24,
+      boxSizing: "border-box",
       color: "#e5e7eb",
-      animation: "pageIn 420ms ease-out",
-    },
-    container: { maxWidth: 980, margin: "0 auto" },
-
-    // ✅ glass cards (more pro)
-    headerCard: {
-      background: "rgba(15,23,42,0.72)",
-      border: "1px solid rgba(148,163,184,0.18)",
-      borderRadius: 18,
-      padding: 18,
-      boxShadow: "0 22px 80px rgba(0,0,0,0.40)",
-      backdropFilter: "blur(14px)",
-      marginBottom: 14,
-      animation: "cardIn 520ms cubic-bezier(.2,.8,.2,1)",
-    },
-    headerTop: {
       display: "flex",
-      justifyContent: "space-between",
+      justifyContent: "center",
+      alignItems: "flex-start",
+      animation: "pageIn 450ms ease-out",
+    },
+
+    wrap: { width: "100%", display: "flex", justifyContent: "center" },
+
+    card: {
+      width: "100%",
+      maxWidth: 1020,
+      borderRadius: 26,
+      padding: 26,
+      background: "rgba(15, 23, 42, 0.80)",
+      border: "1px solid rgba(148, 163, 184, 0.22)",
+      boxShadow: "0 32px 100px rgba(0,0,0,0.50)",
+      backdropFilter: "blur(18px)",
+      overflow: "hidden",
+      boxSizing: "border-box",
+      display: "flex",
+      flexDirection: "column",
+      gap: 18,
+      animation: "cardIn 560ms cubic-bezier(.2,.8,.2,1)",
+      position: "relative",
+    },
+
+    glow: {
+      position: "absolute",
+      inset: -100,
+      background:
+        "radial-gradient(480px 300px at 22% 25%, rgba(34,197,94,0.22), transparent 65%), radial-gradient(520px 320px at 78% 15%, rgba(59,130,246,0.22), transparent 65%)",
+      pointerEvents: "none",
+      filter: "blur(4px)",
+      opacity: 0.95,
+      animation: "float 6s ease-in-out infinite",
+    },
+
+    header: {
+      position: "relative",
+      zIndex: 1,
+      display: "flex",
       alignItems: "center",
-      gap: 12,
+      justifyContent: "space-between",
       flexWrap: "wrap",
+      gap: 14,
+      paddingBottom: 16,
+      borderBottom: "1px solid rgba(148, 163, 184, 0.15)",
     },
-    titleWrap: { display: "flex", alignItems: "center", gap: 10 },
-    logo: {
-      width: 40,
-      height: 40,
-      borderRadius: 14,
+
+    titleBlock: { display: "flex", alignItems: "center", gap: 14 },
+
+    icon: {
+      width: 52,
+      height: 52,
+      borderRadius: 18,
       background: "linear-gradient(135deg, rgba(34,197,94,1), rgba(59,130,246,1))",
-      boxShadow: "0 12px 36px rgba(59,130,246,0.22)",
+      boxShadow: "0 16px 48px rgba(59,130,246,0.28)",
+      display: "grid",
+      placeItems: "center",
+      fontWeight: 900,
+      color: "#0b1220",
+      flex: "0 0 auto",
+      animation: "float 3s ease-in-out infinite",
     },
-    title: { margin: 0, fontSize: 24, fontWeight: 900, letterSpacing: 0.2 },
-    subtitle: { margin: "4px 0 0", fontSize: 13, color: "#cbd5e1", lineHeight: 1.5 },
+
+    h2: { margin: 0, fontSize: 32, letterSpacing: 0.3, fontWeight: 900 },
+    sub: { margin: "6px 0 0", color: "#cbd5e1", fontSize: 14, lineHeight: 1.6 },
+
+    badge: {
+      fontSize: 13,
+      color: "#cbd5e1",
+      border: "1px solid rgba(148, 163, 184, 0.22)",
+      background: "rgba(0,0,0,0.28)",
+      padding: "8px 12px",
+      borderRadius: 999,
+      fontWeight: 800,
+    },
 
     sectionCard: {
-      background: "rgba(15,23,42,0.72)",
-      border: "1px solid rgba(148,163,184,0.18)",
-      borderRadius: 18,
+      position: "relative",
+      zIndex: 1,
+      borderRadius: 22,
+      background: "rgba(2, 6, 23, 0.45)",
+      border: "1px solid rgba(148, 163, 184, 0.18)",
       padding: 18,
-      boxShadow: "0 18px 60px rgba(0,0,0,0.28)",
-      backdropFilter: "blur(14px)",
-      marginBottom: 14,
-      animation: "cardIn 560ms cubic-bezier(.2,.8,.2,1)",
+      boxShadow: "0 16px 48px rgba(0,0,0,0.28)",
+      backdropFilter: "blur(10px)",
+      animation: "cardIn 620ms cubic-bezier(.2,.8,.2,1)",
     },
 
     toolbar: {
@@ -160,30 +195,34 @@ export default function IssueListPage() {
       marginTop: 10,
     },
 
-    // ✅ pro inputs (no white borders)
     select: {
-      padding: "10px 12px",
-      borderRadius: 12,
-      border: "1px solid rgba(148,163,184,0.18)",
-      background: "rgba(2,6,23,0.45)",
+      padding: "12px 14px",
+      borderRadius: 16,
+      border: "1px solid rgba(148,163,184,0.22)",
+      background: "rgba(2,6,23,0.60)",
       color: "#e5e7eb",
       outline: "none",
-      minWidth: 170,
-      transition: "border 160ms ease, box-shadow 160ms ease, filter 160ms ease",
-    },
-    input: {
-      flex: 1,
-      minWidth: 220,
-      padding: "10px 12px",
-      borderRadius: 12,
-      border: "1px solid rgba(148,163,184,0.18)",
-      background: "rgba(2,6,23,0.45)",
-      color: "#e5e7eb",
-      outline: "none",
-      transition: "border 160ms ease, box-shadow 160ms ease, filter 160ms ease",
+      minWidth: 180,
+      transition: "all 220ms cubic-bezier(.2,.8,.2,1)",
+      backdropFilter: "blur(6px)",
+      boxShadow: "0 6px 20px rgba(0,0,0,0.18)",
     },
 
-    hint: { fontSize: 12, color: "#94a3b8", marginTop: 8, lineHeight: 1.5 },
+    input: {
+      flex: 1,
+      minWidth: 240,
+      padding: "12px 14px",
+      borderRadius: 16,
+      border: "1px solid rgba(148,163,184,0.22)",
+      background: "rgba(2,6,23,0.60)",
+      color: "#e5e7eb",
+      outline: "none",
+      transition: "all 220ms cubic-bezier(.2,.8,.2,1)",
+      backdropFilter: "blur(6px)",
+      boxShadow: "0 6px 20px rgba(0,0,0,0.18)",
+    },
+
+    hint: { fontSize: 12, color: "#94a3b8", marginTop: 10, lineHeight: 1.5 },
 
     pagination: {
       display: "flex",
@@ -191,161 +230,155 @@ export default function IssueListPage() {
       alignItems: "center",
       gap: 10,
       flexWrap: "wrap",
-      marginTop: 14,
+      marginTop: 16,
     },
 
-    // ✅ next-level professional button mood (not too bright, not childish)
     pagerBtn: (disabled) => ({
       border: "1px solid rgba(148,163,184,0.22)",
-      borderRadius: 14,
-      padding: "10px 14px",
+      borderRadius: 18,
+      padding: "12px 16px",
       cursor: disabled ? "not-allowed" : "pointer",
       opacity: disabled ? 0.55 : 1,
       color: "#e5e7eb",
       fontWeight: 900,
       letterSpacing: 0.2,
       background: disabled
-        ? "rgba(2,6,23,0.55)"
-        : "linear-gradient(135deg, rgba(30,41,59,0.85), rgba(2,6,23,0.85))",
-      boxShadow: disabled ? "none" : "0 14px 40px rgba(0,0,0,0.35)",
-      minWidth: 110,
+        ? "rgba(2,6,23,0.70)"
+        : "linear-gradient(135deg, rgba(30,41,59,0.85), rgba(2,6,23,0.92))",
+      boxShadow: disabled ? "none" : "0 18px 52px rgba(0,0,0,0.42)",
+      minWidth: 120,
       transition: "transform 140ms ease, filter 140ms ease, box-shadow 140ms ease",
     }),
 
     pageInfo: { fontSize: 13, color: "#cbd5e1" },
   };
 
-  if (loading) return <p style={{ padding: 20 }}>Loading...</p>;
-
   const btnHoverOn = (e, disabled) => {
     if (disabled) return;
     e.currentTarget.style.transform = "translateY(-1px)";
     e.currentTarget.style.filter = "brightness(1.06)";
-    e.currentTarget.style.boxShadow = "0 18px 52px rgba(0,0,0,0.42)";
+    e.currentTarget.style.boxShadow = "0 22px 60px rgba(0,0,0,0.46)";
   };
 
   const btnHoverOff = (e, disabled) => {
     if (disabled) return;
     e.currentTarget.style.transform = "translateY(0)";
     e.currentTarget.style.filter = "brightness(1)";
-    e.currentTarget.style.boxShadow = "0 14px 40px rgba(0,0,0,0.35)";
+    e.currentTarget.style.boxShadow = "0 18px 52px rgba(0,0,0,0.42)";
   };
+
+  if (loading) return <p style={{ padding: 20 }}>Loading...</p>;
 
   return (
     <div style={styles.page}>
-      <div style={styles.container}>
-        {/* Header */}
-        <div style={styles.headerCard}>
-          <div style={styles.headerTop}>
-            <div style={styles.titleWrap}>
-              <div style={styles.logo} />
+      <div style={styles.wrap}>
+        <div style={styles.card}>
+          <div style={styles.glow} />
+
+          {/* Header */}
+          <div style={styles.header}>
+            <div style={styles.titleBlock}>
+              <div style={styles.icon}>📋</div>
               <div>
-                <h2 style={styles.title}>My Issues</h2>
-                <p style={styles.subtitle}>
-                  Manage issues with filters, pagination, and status summary.
+                <h2 style={styles.h2}>My Issues</h2>
+                <p style={styles.sub}>
+                  Browse issues with filters, search, pagination, and status summary.
                 </p>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Summary */}
-        <div style={styles.sectionCard}>
-          <IssueSummary refreshKey={refreshKey} />
-        </div>
-
-        {/* Filters + List */}
-        <div style={styles.sectionCard}>
-          <div style={styles.toolbar}>
-            <select
-              value={status}
-              onChange={(e) => {
-                setPage(1);
-                setStatus(e.target.value);
-              }}
-              style={styles.select}
-              onFocus={focusIn}
-              onBlur={focusOut}
-            >
-              <option value="">All Status</option>
-              <option value="OPEN">OPEN</option>
-              <option value="IN_PROGRESS">IN_PROGRESS</option>
-              <option value="DONE">DONE</option>
-            </select>
-
-            <select
-              value={priority}
-              onChange={(e) => {
-                setPage(1);
-                setPriority(e.target.value);
-              }}
-              style={styles.select}
-              onFocus={focusIn}
-              onBlur={focusOut}
-            >
-              <option value="">All Priority</option>
-              <option value="LOW">LOW</option>
-              <option value="MEDIUM">MEDIUM</option>
-              <option value="HIGH">HIGH</option>
-            </select>
-
-            <input
-              value={search}
-              onChange={(e) => {
-                setPage(1);
-                setSearch(e.target.value);
-              }}
-              placeholder="Search title/description (debounced)"
-              style={styles.input}
-              onFocus={focusIn}
-              onBlur={focusOut}
-            />
+            <div style={styles.badge}>Tip: Use filters + search to find issues quickly</div>
           </div>
 
-          <div style={styles.hint}>Tip: Search is debounced (wait ~0.4s after typing).</div>
-
-          <div style={{ marginTop: 14 }}>
-            <IssueList issues={issues} onStatus={onStatus} onDelete={onDelete} />
+          {/* Summary */}
+          <div style={styles.sectionCard}>
+            <IssueSummary refreshKey={refreshKey} />
           </div>
 
-          {/* Pagination */}
-          <div style={styles.pagination}>
-            <button
-              disabled={page <= 1}
-              onClick={() => setPage((p) => p - 1)}
-              style={styles.pagerBtn(page <= 1)}
-              onMouseEnter={(e) => btnHoverOn(e, page <= 1)}
-              onMouseLeave={(e) => btnHoverOff(e, page <= 1)}
-              onMouseDown={(e) => page > 1 && (e.currentTarget.style.transform = "scale(0.98)")}
-              onMouseUp={(e) => page > 1 && (e.currentTarget.style.transform = "translateY(-1px)")}
-            >
-              Prev
-            </button>
+          {/* Filters + List */}
+          <div style={styles.sectionCard}>
+            <div style={styles.toolbar}>
+              <select
+                value={status}
+                onChange={(e) => {
+                  setPage(1);
+                  setStatus(e.target.value);
+                }}
+                style={styles.select}
+                onFocus={focusIn}
+                onBlur={focusOut}
+              >
+                <option value="">All Status</option>
+                <option value="OPEN">OPEN</option>
+                <option value="IN_PROGRESS">IN_PROGRESS</option>
+                <option value="DONE">DONE</option>
+              </select>
 
-            <span style={styles.pageInfo}>
-              Page {meta.page} / {meta.totalPages} • Total: {meta.total}
-            </span>
+              <select
+                value={priority}
+                onChange={(e) => {
+                  setPage(1);
+                  setPriority(e.target.value);
+                }}
+                style={styles.select}
+                onFocus={focusIn}
+                onBlur={focusOut}
+              >
+                <option value="">All Priority</option>
+                <option value="LOW">LOW</option>
+                <option value="MEDIUM">MEDIUM</option>
+                <option value="HIGH">HIGH</option>
+              </select>
 
-            <button
-              disabled={page >= meta.totalPages}
-              onClick={() => setPage((p) => p + 1)}
-              style={styles.pagerBtn(page >= meta.totalPages)}
-              onMouseEnter={(e) => btnHoverOn(e, page >= meta.totalPages)}
-              onMouseLeave={(e) => btnHoverOff(e, page >= meta.totalPages)}
-              onMouseDown={(e) =>
-                page < meta.totalPages && (e.currentTarget.style.transform = "scale(0.98)")
-              }
-              onMouseUp={(e) =>
-                page < meta.totalPages && (e.currentTarget.style.transform = "translateY(-1px)")
-              }
-            >
-              Next
-            </button>
+              <input
+                value={search}
+                onChange={(e) => {
+                  setPage(1);
+                  setSearch(e.target.value);
+                }}
+                placeholder="Search title/description (debounced)"
+                style={styles.input}
+                onFocus={focusIn}
+                onBlur={focusOut}
+              />
+            </div>
+
+            <div style={styles.hint}>Tip: Search is debounced (wait ~0.4s after typing).</div>
+
+            <div style={{ marginTop: 16 }}>
+              <IssueList issues={issues} onStatus={onStatus} onDelete={onDelete} />
+            </div>
+
+            {/* Pagination */}
+            <div style={styles.pagination}>
+              <button
+                disabled={page <= 1}
+                onClick={() => setPage((p) => p - 1)}
+                style={styles.pagerBtn(page <= 1)}
+                onMouseEnter={(e) => btnHoverOn(e, page <= 1)}
+                onMouseLeave={(e) => btnHoverOff(e, page <= 1)}
+              >
+                Prev
+              </button>
+
+              <span style={styles.pageInfo}>
+                Page {meta.page} / {meta.totalPages} • Total: {meta.total}
+              </span>
+
+              <button
+                disabled={page >= meta.totalPages}
+                onClick={() => setPage((p) => p + 1)}
+                style={styles.pagerBtn(page >= meta.totalPages)}
+                onMouseEnter={(e) => btnHoverOn(e, page >= meta.totalPages)}
+                onMouseLeave={(e) => btnHoverOff(e, page >= meta.totalPages)}
+              >
+                Next
+              </button>
+            </div>
           </div>
+
+          <style>{animations}</style>
         </div>
       </div>
-
-      <style>{animations}</style>
     </div>
   );
 }

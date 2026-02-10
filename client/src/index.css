@@ -19,7 +19,7 @@ body,
   height: 100%;
   margin: 0;
   padding: 0;
-  background: #0b1220; /* 🔥 full dark background */
+  background: #0b1220; /* ✅ WHITE BACKGROUND */
 }
 
 /* =========================
@@ -31,8 +31,8 @@ body,
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: dark;
-  color: rgba(255, 255, 255, 0.87);
+  color-scheme: light; /* ✅ light mode */
+  color: #0f172a;      /* slate-900 */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -40,18 +40,19 @@ body,
   -moz-osx-font-smoothing: grayscale;
 }
 
+
 /* =========================
    LINKS
    ========================= */
 
 a {
   font-weight: 500;
-  color: #93c5fd;
+  color: #2563eb; /* blue-600 */
   text-decoration: none;
 }
 
 a:hover {
-  color: #bfdbfe;
+  color: #1d4ed8; /* blue-700 */
 }
 
 /* =========================
@@ -69,32 +70,33 @@ h1 {
    ========================= */
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb; /* gray-200 */
   padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
+  font-size: 0.95em;
+  font-weight: 600;
   font-family: inherit;
 
-  background-color: #1a1a1a;
-  color: rgba(255, 255, 255, 0.87);
+  background-color: #f8fafc; /* gray-50 */
+  color: #0f172a;            /* slate-900 */
 
   cursor: pointer;
-  transition: border-color 0.25s, background-color 0.25s;
+  transition: background-color 0.25s, border-color 0.25s, box-shadow 0.25s;
 }
 
 button:hover {
-  border-color: #60a5fa;
+  background-color: #f1f5f9; /* gray-100 */
+  border-color: #93c5fd;     /* blue-300 */
 }
 
 button:focus,
 button:focus-visible {
-  outline: 2px solid #60a5fa;
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.35);
 }
 
 /* =========================
-   REMOVE VITE DEMO STYLES
+   ROOT CONTAINER
    ========================= */
 
 #root {
@@ -103,6 +105,10 @@ button:focus-visible {
   text-align: left;
 }
 
+/* =========================
+   REMOVE VITE DEMO STYLES
+   ========================= */
+
 .logo,
 .card,
 .read-the-docs {
@@ -110,22 +116,18 @@ button:focus-visible {
 }
 
 /* =========================
-   FORCE DARK EVEN ON LIGHT MODE
+   BODY
    ========================= */
 
-@media (prefers-color-scheme: light) {
-  :root {
-    background-color: #0b1220;
-    color: rgba(255, 255, 255, 0.87);
-  }
-
-  button {
-    background-color: #1a1a1a;
-    color: rgba(255, 255, 255, 0.87);
-  }
+body {
+  overflow-x: hidden;
+  background: #0b1220;;
+  margin: 0;
 }
 
-body { overflow-x: hidden; }
+/* =========================
+   TOOLTIP ANIMATION
+   ========================= */
 
 @keyframes tipIn {
   from {
@@ -136,4 +138,59 @@ body { overflow-x: hidden; }
     opacity: 1;
     transform: translate(0px, -50%);
   }
+}
+
+
+/* ===============================
+   ANIMATE-UI STYLE MOTION SYSTEM
+   =============================== */
+
+@keyframes ui-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ui-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ui-float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes ui-blob {
+  0%,100% { transform: translate(0,0) scale(1); }
+  50% { transform: translate(20px, 16px) scale(1.04); }
+}
+
+/* base motion helpers */
+.ui-enter {
+  animation: ui-fade-up 700ms cubic-bezier(.2,.8,.2,1) both;
+}
+
+.ui-delay-1 { animation-delay: 80ms; }
+.ui-delay-2 { animation-delay: 160ms; }
+.ui-delay-3 { animation-delay: 240ms; }
+.ui-delay-4 { animation-delay: 320ms; }
+
+.ui-hover {
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.ui-hover:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+}
+
+.ui-glass {
+  backdrop-filter: blur(14px);
+  background: rgba(255,255,255,0.72);
 }

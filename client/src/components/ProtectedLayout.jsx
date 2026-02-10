@@ -19,18 +19,21 @@ export default function ProtectedLayout() {
   const expanded = 260;
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        width: "100%",
-        background:
-          "radial-gradient(1200px 600px at 10% 10%, rgba(34,197,94,0.16), transparent 60%), radial-gradient(1200px 600px at 90% 20%, rgba(59,130,246,0.16), transparent 60%), #0b1220",
-        overflowX: "hidden",
-      }}
-    >
+    <div style={{ minHeight: "100vh", width: "100%", position: "relative" }}>
+      {/* ✅ FIXED FULL-PAGE BACKGROUND (doesn't affect content width) */}
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: -1,
+          background:
+            "radial-gradient(1200px 600px at 10% 10%, rgba(34,197,94,0.16), transparent 60%), radial-gradient(1200px 600px at 90% 20%, rgba(59,130,246,0.16), transparent 60%), #0b1220",
+        }}
+      />
+
       <HoverSidebar user={user} onLogout={logout} open={open} setOpen={setOpen} />
 
-      {/* Content pushes smoothly */}
+      {/* ✅ Content pushes smoothly (unchanged) */}
       <div
         style={{
           marginLeft: open ? expanded : collapsed,
