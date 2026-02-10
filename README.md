@@ -169,11 +169,12 @@ Unauthenticated users are redirected to the landing page or login page.
 ## ▶️ Running the Project Locally
 
 ### Backend
-```bash
 cd server
 npm install
 npm run dev
-Frontend
+
+### Frontend
+```bash
 cd client
 npm install
 npm run dev
