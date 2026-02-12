@@ -1,3 +1,4 @@
+// src/components/IssueList.jsx
 export default function IssueList({ issues = [], onStatus, onDelete, getIssueStyle }) {
   const baseCard = {
     borderRadius: 16,

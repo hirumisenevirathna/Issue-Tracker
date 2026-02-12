@@ -1,13 +1,168 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { register } from "../api/auth.api";
 import { useNavigate, Link } from "react-router-dom";
 
 export default function Register() {
   const nav = useNavigate();
+  const canvasRef = useRef(null);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Canvas animation effect
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas size
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Gradient blobs configuration
+    class GradientBlob {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.radius = Math.random() * 300 + 200;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5;
+        this.hue = Math.random() * 360;
+        this.hueSpeed = (Math.random() - 0.5) * 0.5;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.hue += this.hueSpeed;
+
+        // Bounce off edges
+        if (this.x < -this.radius || this.x > canvas.width + this.radius) this.vx *= -1;
+        if (this.y < -this.radius || this.y > canvas.height + this.radius) this.vy *= -1;
+
+        // Keep within bounds
+        this.x = Math.max(-this.radius, Math.min(canvas.width + this.radius, this.x));
+        this.y = Math.max(-this.radius, Math.min(canvas.height + this.radius, this.y));
+      }
+
+      draw() {
+        const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+        gradient.addColorStop(0, `hsla(${this.hue}, 70%, 60%, 0.4)`);
+        gradient.addColorStop(0.5, `hsla(${this.hue}, 70%, 50%, 0.2)`);
+        gradient.addColorStop(1, 'transparent');
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    // Particle system
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 0.5;
+        this.speedY = Math.random() * 0.5 + 0.2;
+        this.speedX = (Math.random() - 0.5) * 0.3;
+        this.opacity = Math.random() * 0.5 + 0.2;
+      }
+
+      update() {
+        this.y -= this.speedY;
+        this.x += this.speedX;
+
+        if (this.y < 0) {
+          this.y = canvas.height;
+          this.x = Math.random() * canvas.width;
+        }
+      }
+
+      draw() {
+        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Create blobs and particles
+    const blobs = [];
+    const particles = [];
+
+    for (let i = 0; i < 5; i++) {
+      blobs.push(new GradientBlob());
+    }
+
+    for (let i = 0; i < 100; i++) {
+      particles.push(new Particle());
+    }
+
+    // Mouse interaction
+    let mouseX = canvas.width / 2;
+    let mouseY = canvas.height / 2;
+
+    const handleMouseMove = (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+
+      blobs.forEach((blob) => {
+        const dx = mouseX - blob.x;
+        const dy = mouseY - blob.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < 500) {
+          blob.vx += dx * 0.00005;
+          blob.vy += dy * 0.00005;
+        }
+      });
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+
+    // Animation loop
+    let animationId;
+    function animate() {
+      // Dark base
+      ctx.fillStyle = '#0b1220';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Enable blending for smooth gradient mixing
+      ctx.globalCompositeOperation = 'screen';
+
+      // Update and draw blobs
+      blobs.forEach(blob => {
+        blob.update();
+        blob.draw();
+      });
+
+      // Reset composite operation for particles
+      ctx.globalCompositeOperation = 'source-over';
+
+      // Update and draw particles
+      particles.forEach(particle => {
+        particle.update();
+        particle.draw();
+      });
+
+      animationId = requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+      document.removeEventListener('mousemove', handleMouseMove);
+      cancelAnimationFrame(animationId);
+    };
+  }, []);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -50,17 +205,17 @@ export default function Register() {
 
   const styles = {
     page: {
-  position: "fixed",
-  inset: 0,              // 🔥 full viewport
-  overflow: "hidden",
-  display: "grid",
-  placeItems: "center",
-  padding: 0,            // ❌ remove padding (white edge cause)
-  color: "#e5e7eb",
-  background: "#0b1220",
-  animation: "pageIn 420ms ease-out",
-}
-,
+      position: "fixed",
+      inset: 0,
+      overflow: "hidden",
+      display: "grid",
+      placeItems: "center",
+      padding: 0,
+      color: "#e5e7eb",
+      background: "#0b1220",
+      animation: "pageIn 420ms ease-out",
+    },
+
     card: {
       width: "100%",
       maxWidth: 420,
@@ -71,7 +226,10 @@ export default function Register() {
       boxShadow: "0 22px 80px rgba(0,0,0,0.45)",
       backdropFilter: "blur(10px)",
       animation: "cardIn 520ms cubic-bezier(.2,.8,.2,1)",
+      zIndex: 2,
+      position: "relative",
     },
+
     brand: {
       display: "flex",
       alignItems: "center",
@@ -79,6 +237,7 @@ export default function Register() {
       marginBottom: 16,
       color: "#e5e7eb",
     },
+
     logo: {
       width: 38,
       height: 38,
@@ -88,11 +247,13 @@ export default function Register() {
       boxShadow: "0 10px 30px rgba(34,197,94,0.18)",
       flex: "0 0 auto",
     },
+
     header: { marginBottom: 18 },
     title: { margin: 0, fontSize: 26, letterSpacing: 0.2 },
     subtitle: { margin: "6px 0 0", color: "#cbd5e1", fontSize: 14, lineHeight: 1.6 },
     label: { display: "block", fontSize: 12, color: "#cbd5e1", marginBottom: 6 },
     inputWrap: { margin: "12px 0" },
+
     input: {
       width: "100%",
       padding: "12px 12px",
@@ -103,7 +264,9 @@ export default function Register() {
       outline: "none",
       transition: "border 160ms ease, box-shadow 160ms ease",
     },
+
     hint: { fontSize: 12, color: "#94a3b8", marginTop: 6, lineHeight: 1.5 },
+
     error: {
       marginTop: 10,
       padding: "10px 12px",
@@ -114,6 +277,7 @@ export default function Register() {
       fontSize: 13,
       animation: "cardIn 260ms ease-out",
     },
+
     btn: {
       width: "100%",
       padding: "12px 14px",
@@ -128,25 +292,35 @@ export default function Register() {
       marginTop: 8,
       transition: "transform 120ms ease, box-shadow 120ms ease, filter 120ms ease",
     },
+
     btnDisabled: { opacity: 0.7, cursor: "not-allowed" },
     footer: { marginTop: 14, fontSize: 13, color: "#cbd5e1" },
     link: { color: "#93c5fd", textDecoration: "none", fontWeight: 700 },
-    video: {
-  position: "absolute",
-  inset: 0,
-  width: "100%",
-  height: "100%",
-  objectFit: "cover",
-  zIndex: 0,
-},
-overlay: {
-  position: "absolute",
-  inset: 0,
-  background:
-    "radial-gradient(1200px 500px at 10% 10%, rgba(34,197,94,0.18), transparent 60%), radial-gradient(1200px 500px at 90% 20%, rgba(59,130,246,0.18), transparent 60%), linear-gradient(180deg, rgba(2,6,23,0.55), rgba(2,6,23,0.75))",
-  zIndex: 1,
-},
 
+    videoBackground: {
+      position: "absolute",
+      inset: 0,
+      width: "100%",
+      height: "100%",
+      zIndex: 0,
+      overflow: "hidden",
+    },
+
+    canvas: {
+      position: "absolute",
+      inset: 0,
+      width: "100%",
+      height: "100%",
+      objectFit: "cover",
+    },
+
+    overlay: {
+      position: "absolute",
+      inset: 0,
+      background:
+        "radial-gradient(1200px 500px at 10% 10%, rgba(34,197,94,0.18), transparent 60%), radial-gradient(1200px 500px at 90% 20%, rgba(59,130,246,0.18), transparent 60%), linear-gradient(180deg, rgba(2,6,23,0.55), rgba(2,6,23,0.75))",
+      zIndex: 1,
+    },
   };
 
   const focusIn = (e) => {
@@ -161,18 +335,12 @@ overlay: {
 
   return (
     <div style={styles.page}>
-        <video
-  autoPlay
-  muted
-  loop
-  playsInline
-  disablePictureInPicture
-  controls={false}
-  controlsList="nodownload noplaybackrate noremoteplayback"
-  style={styles.video}
->
-  <source src="/bg.mp4" type="video/mp4" />
-</video>
+      {/* Canvas Background Animation */}
+      <div style={styles.videoBackground}>
+        <canvas ref={canvasRef} style={styles.canvas} />
+      </div>
+
+      <div style={styles.overlay} />
 
       <div style={styles.card}>
         <div style={styles.brand}>

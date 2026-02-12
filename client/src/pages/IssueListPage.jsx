@@ -1,3 +1,4 @@
+// src/pages/IssueListPage.jsx
 import { useContext, useEffect, useMemo, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { deleteIssue, getIssues, updateIssue } from "../api/issues.api";
@@ -5,6 +6,60 @@ import IssueSummary from "../components/IssueSummary";
 import IssueList from "../components/IssueList";
 import { useNavigate } from "react-router-dom";
 import useDebounce from "../hooks/useDebounce";
+
+// -----------------------------
+// Export helpers (CSV / JSON)
+// -----------------------------
+function downloadFile(filename, content, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  URL.revokeObjectURL(url);
+}
+
+function issuesToCSV(rows) {
+  const headers = ["id", "title", "description", "status", "priority", "createdAt", "updatedAt"];
+
+  const escape = (v) => {
+    if (v === null || v === undefined) return "";
+    const s = String(v).replace(/"/g, '""');
+    return `"${s}"`;
+  };
+
+  const lines = [
+    headers.join(","),
+    ...rows.map((r) =>
+      [
+        r._id ?? r.id ?? "",
+        r.title ?? "",
+        r.description ?? "",
+        r.status ?? "",
+        r.priority ?? "",
+        r.createdAt ?? "",
+        r.updatedAt ?? "",
+      ]
+        .map(escape)
+        .join(",")
+    ),
+  ];
+
+  return lines.join("\n");
+}
+
+function safeDateStamp() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(
+    d.getMinutes()
+  )}-${pad(d.getSeconds())}`;
+}
 
 export default function IssueListPage() {
   const { user, loading } = useContext(AuthContext);
@@ -61,6 +116,17 @@ export default function IssueListPage() {
     if (!ok) return;
     await deleteIssue(id);
     setRefreshKey((k) => k + 1);
+  };
+
+  // ✅ Export current page list (respects current filters/search/pagination)
+  const onExportCSV = () => {
+    const csv = issuesToCSV(issues);
+    downloadFile(`issues_${safeDateStamp()}.csv`, csv, "text/csv;charset=utf-8");
+  };
+
+  const onExportJSON = () => {
+    const json = JSON.stringify(issues, null, 2);
+    downloadFile(`issues_${safeDateStamp()}.json`, json, "application/json;charset=utf-8");
   };
 
   const animations = `
@@ -222,6 +288,21 @@ export default function IssueListPage() {
       boxShadow: "0 6px 20px rgba(0,0,0,0.18)",
     },
 
+    exportBtn: {
+      borderRadius: 16,
+      padding: "12px 14px",
+      border: "1px solid rgba(148,163,184,0.22)",
+      background: "linear-gradient(135deg, rgba(30,41,59,0.85), rgba(2,6,23,0.92))",
+      color: "#e5e7eb",
+      cursor: "pointer",
+      fontWeight: 900,
+      letterSpacing: 0.2,
+      boxShadow: "0 18px 52px rgba(0,0,0,0.35)",
+      transition: "transform 140ms ease, filter 140ms ease, box-shadow 140ms ease",
+      whiteSpace: "nowrap",
+      userSelect: "none",
+    },
+
     hint: { fontSize: 12, color: "#94a3b8", marginTop: 10, lineHeight: 1.5 },
 
     pagination: {
@@ -248,6 +329,8 @@ export default function IssueListPage() {
       boxShadow: disabled ? "none" : "0 18px 52px rgba(0,0,0,0.42)",
       minWidth: 120,
       transition: "transform 140ms ease, filter 140ms ease, box-shadow 140ms ease",
+      userSelect: "none",
+      whiteSpace: "nowrap",
     }),
 
     pageInfo: { fontSize: 13, color: "#cbd5e1" },
@@ -281,9 +364,7 @@ export default function IssueListPage() {
               <div style={styles.icon}>📋</div>
               <div>
                 <h2 style={styles.h2}>My Issues</h2>
-                <p style={styles.sub}>
-                  Browse issues with filters, search, pagination, and status summary.
-                </p>
+                <p style={styles.sub}>Browse issues with filters, search, pagination, and status summary.</p>
               </div>
             </div>
             <div style={styles.badge}>Tip: Use filters + search to find issues quickly</div>
@@ -340,6 +421,29 @@ export default function IssueListPage() {
                 onFocus={focusIn}
                 onBlur={focusOut}
               />
+
+              {/* ✅ Export buttons */}
+              <button
+                type="button"
+                style={styles.exportBtn}
+                onMouseEnter={(e) => btnHoverOn(e, false)}
+                onMouseLeave={(e) => btnHoverOff(e, false)}
+                onClick={onExportCSV}
+                title="Export current list to CSV"
+              >
+                Export CSV
+              </button>
+
+              <button
+                type="button"
+                style={styles.exportBtn}
+                onMouseEnter={(e) => btnHoverOn(e, false)}
+                onMouseLeave={(e) => btnHoverOff(e, false)}
+                onClick={onExportJSON}
+                title="Export current list to JSON"
+              >
+                Export JSON
+              </button>
             </div>
 
             <div style={styles.hint}>Tip: Search is debounced (wait ~0.4s after typing).</div>
