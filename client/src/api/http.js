@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: "/", // vite proxy handles /api
+  baseURL: "https://issue-tracker-production-a244.up.railway.app", // vite proxy handles /api
 });
 
 api.interceptors.request.use((config) => {
